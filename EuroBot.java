@@ -1,5 +1,5 @@
 import java.net.*; import java.io.*; import com.sun.net.httpserver.*;
-public class BrlaBot {
+public class EuroBot {
     static String BOT_TOKEN = System.getenv("BOT_TOKEN");
     static String CHAT_ID = System.getenv("CHAT_ID");
 
