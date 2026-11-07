@@ -1,7 +1,7 @@
 import java.net.*; import java.io.*; import com.sun.net.httpserver.*;
 public class BrlaBot {
-    static String BOT_TOKEN = System.getenv("8912648959:AAGPmVLfcgTeXxyyfcLyN61tiejY9CxzDaI");
-    static String CHAT_ID = System.getenv("7265683161");
+    static String BOT_TOKEN = System.getenv("BOT_TOKEN");
+    static String CHAT_ID = System.getenv("CHAT_ID");
 
     // --- PAIRS ---
     static String PAIR_UNISWAP = "0x7279c08A36333e12c3Fc81747963264c100D66fB";
