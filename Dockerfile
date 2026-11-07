@@ -1,5 +1,5 @@
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
-COPY BrlaBot.java .
-RUN javac BrlaBot.java
-CMD ["java", "BrlaBot"]         
+COPY EuroBot.java .
+RUN javac EuroBot.java
+CMD ["java", "EuroBot"]         
