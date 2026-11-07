@@ -16,13 +16,20 @@ public class EuroBot {
     static boolean jaAlertouEuroUni = false;
     static boolean jaAlertouEuroAero = false;
 
+    // --- NOVO: CONTROLE DE CONFIRMAÇÃO DE 15 MIN ---
+    static long pendenteUniInicio = 0;
+    static String pendenteUniDir = "";
+    static long pendenteAeroInicio = 0;
+    static String pendenteAeroDir = "";
+    static final long TEMPO_CONFIRMACAO = 15 * 60 * 1000; // 15 minutos
+
     public static void main(String[] args) throws Exception {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT","10000"));
         HttpServer s = HttpServer.create(new InetSocketAddress(port),0);
         s.createContext("/", e->{ try{String r="OK NUVEM BR-EURO"; e.sendResponseHeaders(200,r.length()); e.getResponseBody().write(r.getBytes()); e.getResponseBody().close();}catch(Exception ex){} });
         s.start();
         System.out.println("CLOUD ON PORT "+port+" EURO_UNI "+EURO_UNI_MIN+"-"+EURO_UNI_MAX+" EURO_AERO "+EURO_AERO_MIN+"-"+EURO_AERO_MAX);
-        try{ sendTelegram("✅ NUVEM ON!\nEURO_UNI "+EURO_UNI_MIN+" - "+EURO_UNI_MAX+"\nEURO_AERO "+EURO_AERO_MIN+" - "+EURO_AERO_MAX+" | Fonte Dexscreener | 24h"); }catch(Exception e){}
+        try{ sendTelegram("✅ NUVEM ON!\nEURO_UNI "+EURO_UNI_MIN+" - "+EURO_UNI_MAX+"\nEURO_AERO "+EURO_AERO_MIN+" - "+EURO_AERO_MAX+" | Fonte Dexscreener | 24h | Confirmacao 15min"); }catch(Exception e){}
 
         while(true){
             try{
@@ -30,23 +37,53 @@ public class EuroBot {
                 double precoUni = getPrecoPair(PAIR_UNISWAP);
                 System.out.println("EURO Uniswap: $"+precoUni);
                 if(precoUni<EURO_UNI_MIN || precoUni>EURO_UNI_MAX){
+                    String dirAtual = precoUni>EURO_UNI_MAX?"ALTA":"BAIXA";
                     if(!jaAlertouEuroUni){
-                        String dir=precoUni>EURO_UNI_MAX?"ALTA":"BAIXA";
-                        sendTelegram("🚨 EURO UNISWAP ROMPIMENTO "+dir+"! EURC $"+String.format("%.4f",precoUni)+" saiu do range ["+EURO_UNI_MIN+" - "+EURO_UNI_MAX+"]");
-                        jaAlertouEuroUni=true;
+                        if(pendenteUniInicio==0){
+                            // 1. PASSOU - começa a contar os 15 min, NÃO alerta ainda
+                            pendenteUniInicio = System.currentTimeMillis();
+                            pendenteUniDir = dirAtual;
+                            System.out.println("UNISWAP suspeita "+dirAtual+" - aguardando 15min confirmacao");
+                        } else if(!pendenteUniDir.equals(dirAtual)){
+                            // Mudou de direção, reinicia contagem
+                            pendenteUniInicio = System.currentTimeMillis();
+                            pendenteUniDir = dirAtual;
+                        } else if(System.currentTimeMillis() - pendenteUniInicio >= TEMPO_CONFIRMACAO){
+                            // 2. CONTINUOU FORA 15 MIN - AGORA SIM ALERTA
+                            sendTelegram("🚨 EURO UNISWAP ROMPIMENTO "+dirAtual+" CONFIRMADO! EURC $"+String.format("%.4f",precoUni)+" saiu do range ["+EURO_UNI_MIN+" - "+EURO_UNI_MAX+"] e segurou 15min fora");
+                            jaAlertouEuroUni=true;
+                            pendenteUniInicio=0;
+                        }
                     }
-                } else { jaAlertouEuroUni=false; }
+                } else { 
+                    // Voltou pra dentro antes dos 15 min = falso rompimento, cancela
+                    if(pendenteUniInicio!=0) System.out.println("UNISWAP voltou pra dentro - falso rompimento cancelado");
+                    pendenteUniInicio=0; pendenteUniDir=""; jaAlertouEuroUni=false; 
+                }
 
                 // --- AERODROME ---
                 double precoAero = getPrecoPair(PAIR_AERODROME);
                 System.out.println("EURO Aerodrome: $"+precoAero);
                 if(precoAero<EURO_AERO_MIN || precoAero>EURO_AERO_MAX){
+                    String dirAtual = precoAero>EURO_AERO_MAX?"ALTA":"BAIXA";
                     if(!jaAlertouEuroAero){
-                        String dir=precoAero>EURO_AERO_MAX?"ALTA":"BAIXA";
-                        sendTelegram("🚨 EURO AERODROME ROMPIMENTO "+dir+"! EURC $"+String.format("%.4f",precoAero)+" saiu do range ["+EURO_AERO_MIN+" - "+EURO_AERO_MAX+"]");
-                        jaAlertouEuroAero=true;
+                        if(pendenteAeroInicio==0){
+                            pendenteAeroInicio = System.currentTimeMillis();
+                            pendenteAeroDir = dirAtual;
+                            System.out.println("AERODROME suspeita "+dirAtual+" - aguardando 15min confirmacao");
+                        } else if(!pendenteAeroDir.equals(dirAtual)){
+                            pendenteAeroInicio = System.currentTimeMillis();
+                            pendenteAeroDir = dirAtual;
+                        } else if(System.currentTimeMillis() - pendenteAeroInicio >= TEMPO_CONFIRMACAO){
+                            sendTelegram("🚨 EURO AERODROME ROMPIMENTO "+dirAtual+" CONFIRMADO! EURC $"+String.format("%.4f",precoAero)+" saiu do range ["+EURO_AERO_MIN+" - "+EURO_AERO_MAX+"] e segurou 15min fora");
+                            jaAlertouEuroAero=true;
+                            pendenteAeroInicio=0;
+                        }
                     }
-                } else { jaAlertouEuroAero=false; }
+                } else { 
+                    if(pendenteAeroInicio!=0) System.out.println("AERODROME voltou pra dentro - falso rompimento cancelado");
+                    pendenteAeroInicio=0; pendenteAeroDir=""; jaAlertouEuroAero=false; 
+                }
 
             }catch(Exception e){ System.out.println(e.getMessage()); }
             Thread.sleep(20000);
