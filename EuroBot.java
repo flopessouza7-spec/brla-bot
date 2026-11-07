@@ -3,22 +3,15 @@ public class EuroBot {
     static String BOT_TOKEN = System.getenv("BOT_TOKEN");
     static String CHAT_ID = System.getenv("CHAT_ID");
 
-    // --- PAIRS ---
-    static String PAIR_UNISWAP = "0x7279c08A36333e12c3Fc81747963264c100D66fB";
+    // --- APENAS AERODROME AGORA ---
     static String PAIR_AERODROME = "0xe846373c1a92b167b4e9cd5d8e4d6b1db9e90ec7";
 
-    // --- EURO - você muda no Render sem mexer no código ---
-    static double EURO_UNI_MIN = Double.parseDouble(System.getenv().getOrDefault("EURO_UNI_MIN","1.1029"));
-    static double EURO_UNI_MAX = Double.parseDouble(System.getenv().getOrDefault("EURO_UNI_MAX","1.1250"));
-    static double EURO_AERO_MIN = Double.parseDouble(System.getenv().getOrDefault("EURO_AERO_MIN","1.1000"));
-    static double EURO_AERO_MAX = Double.parseDouble(System.getenv().getOrDefault("EURO_AERO_MAX","1.1300"));
+    static double EURO_AERO_MIN = Double.parseDouble(System.getenv().getOrDefault("EURO_AERO_MIN","1.10516"));
+    static double EURO_AERO_MAX = Double.parseDouble(System.getenv().getOrDefault("EURO_AERO_MAX","1.1274"));
 
-    static boolean jaAlertouEuroUni = false;
     static boolean jaAlertouEuroAero = false;
 
-    // --- NOVO: CONTROLE DE CONFIRMAÇÃO DE 15 MIN ---
-    static long pendenteUniInicio = 0;
-    static String pendenteUniDir = "";
+    // --- CONFIRMAÇÃO DE 15 MIN ---
     static long pendenteAeroInicio = 0;
     static String pendenteAeroDir = "";
     static final long TEMPO_CONFIRMACAO = 15 * 60 * 1000; // 15 minutos
@@ -26,41 +19,13 @@ public class EuroBot {
     public static void main(String[] args) throws Exception {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT","10000"));
         HttpServer s = HttpServer.create(new InetSocketAddress(port),0);
-        s.createContext("/", e->{ try{String r="OK NUVEM BR-EURO"; e.sendResponseHeaders(200,r.length()); e.getResponseBody().write(r.getBytes()); e.getResponseBody().close();}catch(Exception ex){} });
+        s.createContext("/", e->{ try{String r="OK NUVEM BR-EURO AERO ONLY"; e.sendResponseHeaders(200,r.length()); e.getResponseBody().write(r.getBytes()); e.getResponseBody().close();}catch(Exception ex){} });
         s.start();
-        System.out.println("CLOUD ON PORT "+port+" EURO_UNI "+EURO_UNI_MIN+"-"+EURO_UNI_MAX+" EURO_AERO "+EURO_AERO_MIN+"-"+EURO_AERO_MAX);
-        try{ sendTelegram("✅ NUVEM ON!\nEURO_UNI "+EURO_UNI_MIN+" - "+EURO_UNI_MAX+"\nEURO_AERO "+EURO_AERO_MIN+" - "+EURO_AERO_MAX+" | Fonte Dexscreener | 24h | Confirmacao 15min"); }catch(Exception e){}
+        System.out.println("CLOUD ON PORT "+port+" EURO_AERO "+EURO_AERO_MIN+"-"+EURO_AERO_MAX);
+        try{ sendTelegram("✅ NUVEM ON!\nEURO_AERO "+EURO_AERO_MIN+" - "+EURO_AERO_MAX+" | Fonte Aerodrome | Confirmacao 15min"); }catch(Exception e){}
 
         while(true){
             try{
-                // --- UNISWAP ---
-                double precoUni = getPrecoPair(PAIR_UNISWAP);
-                System.out.println("EURO Uniswap: $"+precoUni);
-                if(precoUni<EURO_UNI_MIN || precoUni>EURO_UNI_MAX){
-                    String dirAtual = precoUni>EURO_UNI_MAX?"ALTA":"BAIXA";
-                    if(!jaAlertouEuroUni){
-                        if(pendenteUniInicio==0){
-                            // 1. PASSOU - começa a contar os 15 min, NÃO alerta ainda
-                            pendenteUniInicio = System.currentTimeMillis();
-                            pendenteUniDir = dirAtual;
-                            System.out.println("UNISWAP suspeita "+dirAtual+" - aguardando 15min confirmacao");
-                        } else if(!pendenteUniDir.equals(dirAtual)){
-                            // Mudou de direção, reinicia contagem
-                            pendenteUniInicio = System.currentTimeMillis();
-                            pendenteUniDir = dirAtual;
-                        } else if(System.currentTimeMillis() - pendenteUniInicio >= TEMPO_CONFIRMACAO){
-                            // 2. CONTINUOU FORA 15 MIN - AGORA SIM ALERTA
-                            sendTelegram("🚨 EURO UNISWAP ROMPIMENTO "+dirAtual+" CONFIRMADO! EURC $"+String.format("%.4f",precoUni)+" saiu do range ["+EURO_UNI_MIN+" - "+EURO_UNI_MAX+"] e segurou 15min fora");
-                            jaAlertouEuroUni=true;
-                            pendenteUniInicio=0;
-                        }
-                    }
-                } else { 
-                    // Voltou pra dentro antes dos 15 min = falso rompimento, cancela
-                    if(pendenteUniInicio!=0) System.out.println("UNISWAP voltou pra dentro - falso rompimento cancelado");
-                    pendenteUniInicio=0; pendenteUniDir=""; jaAlertouEuroUni=false; 
-                }
-
                 // --- AERODROME ---
                 double precoAero = getPrecoPair(PAIR_AERODROME);
                 System.out.println("EURO Aerodrome: $"+precoAero);
