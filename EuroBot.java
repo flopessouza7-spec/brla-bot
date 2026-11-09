@@ -11,8 +11,8 @@ public class EuroBot {
 
     // --- JPYC / USDC - ETHEREUM ---
     static String PAIR_JPYC = "0x04607d754b2dca9bca1ce71c118f4382dd6adc38d3a6442e0cfa491db61e289f";
-    static double JPYC_MIN = Double.parseDouble(System.getenv().getOrDefault("JPYC_MIN","155.50"));
-    static double JPYC_MAX = Double.parseDouble(System.getenv().getOrDefault("JPYC_MAX","162.00"));
+    static double JPYC_MIN = Double.parseDouble(System.getenv().getOrDefault("JPYC_MIN","157.02"));
+    static double JPYC_MAX = Double.parseDouble(System.getenv().getOrDefault("JPYC_MAX","160.19"));
     static boolean jaAlertouJPYC = false;
 
     // --- CONFIRMAÇÃO DE 15 MIN ---
