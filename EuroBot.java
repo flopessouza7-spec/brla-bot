@@ -5,14 +5,14 @@ public class EuroBot {
 
     // --- AERODROME EURO ---
     static String PAIR_AERODROME = "0xe846373c1a92b167b4e9cd5d8e4d6b1db9e90ec7";
-    static double EURO_AERO_MIN = Double.parseDouble(System.getenv().getOrDefault("EURO_AERO_MIN","1.10516"));
-    static double EURO_AERO_MAX = Double.parseDouble(System.getenv().getOrDefault("EURO_AERO_MAX","1.1274"));
+    static double EURO_AERO_MIN = Double.parseDouble(System.getenv().getOrDefault("EURO_AERO_MIN","1.1052"));
+    static double EURO_AERO_MAX = Double.parseDouble(System.getenv().getOrDefault("EURO_AERO_MAX","1.1275"));
     static boolean jaAlertouEuroAero = false;
 
     // --- JPYC / USDC - ETHEREUM ---
     static String PAIR_JPYC = "0x04607d754b2dca9bca1ce71c118f4382dd6adc38d3a6442e0cfa491db61e289f";
-    static double JPYC_MIN = Double.parseDouble(System.getenv().getOrDefault("JPYC_MIN","157.02"));
-    static double JPYC_MAX = Double.parseDouble(System.getenv().getOrDefault("JPYC_MAX","160.19"));
+    static double JPYC_MIN = Double.parseDouble(System.getenv().getOrDefault("JPYC_MIN","157.33"));
+    static double JPYC_MAX = Double.parseDouble(System.getenv().getOrDefault("JPYC_MAX","162.12"));
     static boolean jaAlertouJPYC = false;
 
     // --- CONFIRMAÇÃO DE 15 MIN ---
